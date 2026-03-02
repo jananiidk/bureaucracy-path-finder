@@ -1,0 +1,8 @@
+{
+  "pension": {
+    "requires": ["id_card", "bank_account", "age_proof"]
+  },
+  "id_card": {
+    "requires": ["birth_certificate", "address_proof", "witness"]
+  }
+}

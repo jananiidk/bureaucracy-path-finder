@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Test AI Backend</h2>
+
+<input id="txt" placeholder="Type request here">
+<button onclick="send()">Send</button>
+
+<pre id="out"></pre>
+
+<script>
+function send(){
+    fetch("http://127.0.0.1:5000/check",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({text:document.getElementById("txt").value})
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        document.getElementById("out").innerText =
+            data.message + "\n\nSteps:\n- " + data.steps.join("\n- ");
+    })
+}
+</script>
+
+</body>
+</html>
