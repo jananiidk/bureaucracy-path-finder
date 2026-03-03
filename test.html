@@ -2,25 +2,86 @@
 <html>
 <body>
 
-<h2>Test AI Backend</h2>
+<h2>Bureaucracy Pathfinder</h2>
 
+<!-- TEXT INPUT -->
 <input id="txt" placeholder="Type request here">
-<button onclick="send()">Send</button>
+<button onclick="sendText()">Send Text</button>
+
+<br><br>
+
+<!-- VOICE INPUT -->
+<button onclick="startVoice()">🎙 Speak</button>
+
+<p id="status" style="color:blue;"></p>
+
+<hr>
 
 <pre id="out"></pre>
 
 <script>
-function send(){
+function showResult(data){
+    document.getElementById("out").innerText =
+        data.message + "\n\nSteps:\n- " + data.steps.join("\n- ");
+}
+
+function sendText(){
+    const textValue = document.getElementById("txt").value;
+
+    if(!textValue){
+        alert("Please type something first.");
+        return;
+    }
+
+    document.getElementById("status").innerText = "Checking eligibility...";
+
     fetch("http://127.0.0.1:5000/check",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({text:document.getElementById("txt").value})
+        body:JSON.stringify({text:textValue})
     })
     .then(r=>r.json())
     .then(data=>{
-        document.getElementById("out").innerText =
-            data.message + "\n\nSteps:\n- " + data.steps.join("\n- ");
+        document.getElementById("status").innerText = "Done ✅";
+        showResult(data);
     })
+    .catch(err=>{
+        document.getElementById("status").innerText = "Backend connection error ❌";
+        console.error(err);
+    });
+}
+
+function startVoice(){
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+        alert("Speech recognition not supported. Use Google Chrome.");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+
+    document.getElementById("status").innerText = "Listening... 🎙";
+
+    recognition.start();
+
+    recognition.onresult = function(event){
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("txt").value = transcript;
+        document.getElementById("status").innerText = "You said: " + transcript;
+        sendText();
+    };
+
+    recognition.onerror = function(event){
+        document.getElementById("status").innerText = "Voice error: " + event.error + " ❌";
+    };
+
+    recognition.onend = function(){
+        if(document.getElementById("status").innerText === "Listening... 🎙"){
+            document.getElementById("status").innerText = "No speech detected.";
+        }
+    };
 }
 </script>
 
